@@ -15,16 +15,16 @@ class FakeKmeans:
 
 
 def test_bucket_headings_sorts_rows_by_height_keeping_label_pairs(monkeypatch):
-    # Interleaved labels: [0, 1, 0, 1] for heights [12, 22, 16, 26]. Sorting
-    # each column independently (as np.sort(axis=0) would) breaks the
-    # height/label pairing and invents extra heading levels.
+    # Unequal cluster sizes and labels ordered opposite to their heights
+    # expose column-wise sorting: it would group [12, 14] and [16, 22, 26]
+    # instead of preserving the original height/label pairs.
     monkeypatch.setattr(
         "marker.processors.sectionheader.KMeans",
-        FakeKmeans([0, 1, 0, 1]),
+        FakeKmeans([1, 0, 1, 1, 0]),
     )
     processor = SectionHeaderProcessor({"level_count": 2})
 
-    heading_ranges = processor.bucket_headings([12, 22, 16, 26])
+    heading_ranges = processor.bucket_headings([12, 22, 14, 16, 26])
 
     assert heading_ranges == [(22, 26), (12, 16)]
 
